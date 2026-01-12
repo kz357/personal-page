@@ -13,6 +13,10 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Xanh+Mono&display=swap" rel="stylesheet">
+
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link
             rel="stylesheet"
@@ -76,9 +80,9 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbar">
-                <div class="navbar-nav">
-                    {% if request.endpoint in ['about', 'projects'] %}
-                    <a class="nav-item nav-link" href="{{ url_for('home') }}">
+                <div class="navbar-nav" style="position: absolute; left: 15px;">
+                    {% if not request.endpoint in ['home'] %}
+                    <a class="nav-item nav-link" href="{{ url_for('home') }}" style="padding-top: 0; padding-bottom: 0;">
                         <img src="{{ url_for('static', filename='images/home.png') }}" alt="Home" style="height: 36px; width: auto;">
                     </a>
                     {% endif %}
