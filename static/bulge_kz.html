@@ -59,7 +59,7 @@ const fragmentShader = `
 
     void main() {
 
-        vec2 centeredUv = (vUv - 0.5) / vec2(0.7, 0.5) + 0.5;
+        vec2 centeredUv = (vUv - 0.5) / vec2(0.7) + 0.5;
         vec2 uv = centeredUv;
         
         vec2 delta = vUv - uMouse;
@@ -129,7 +129,7 @@ window.addEventListener("mousemove", (e) => {
     const mx = e.clientX / window.innerWidth;
     const my = 1.0 - e.clientY / window.innerHeight;
     targetMouse.x = (mx - 0.5) / 0.7 + 0.5;
-    targetMouse.y = (my - 0.5) / 0.5 + 0.5;
+    targetMouse.y = (my - 0.5) / 0.7 + 0.5;
 });
 
 // render loop
