@@ -3,8 +3,7 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 PROJECTS = [
-    {"title": "Project One", "description": "What it does"},
-    {"title": "Project Two", "description": "Another project"},
+    {"title": "Project", "description": "description"},
 ]
 
 @app.route("/")
