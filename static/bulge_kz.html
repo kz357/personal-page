@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Three.js Multi-Layer Bulge</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<script type="module">
+import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+
+// scene
+const scene = new THREE.Scene();
+
+const camera = new THREE.OrthographicCamera(
+    -1, 1, 1, -1, 0, 10
+);
+camera.position.z = 1;
+
+const container = document.body;
+const width = container.clientWidth || 800;
+const height = container.clientHeight || 400;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+// shaders
+const vertexShader = `
+    varying vec2 vUv;
+
+    void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+
+`;
+
+const fragmentShader = `
+    uniform sampler2D uTexture;
+    uniform vec2 uMouse;
+    uniform float uStrength;
+    uniform float uRadius;
+    uniform float uDepth;
+
+    varying vec2 vUv;
+
+    void main() {
+
+        vec2 centeredUv = (vUv - 0.5) / vec2(0.7, 0.5) + 0.5;
+        vec2 uv = centeredUv;
+        
+        vec2 delta = vUv - uMouse;
+        float dist = length(delta);
+        if (dist < uRadius) {
+            float power = (uRadius - dist) / uRadius;
+            float depthFactor = mix(0.2, 1.0, uDepth);
+            uv -= normalize(delta) * power * power * uStrength * depthFactor;
+        }
+        
+        // Only show texture within valid UV bounds, otherwise transparent
+        if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        } else {
+            gl_FragColor = texture2D(uTexture, uv);
+        }
+    }
+`;
+
+// yourmometry
+const geometry = new THREE.PlaneGeometry(2, 2);
+
+
+// layers
+const layers = [
+    { src: "images/kz_for_home_6.png", depth: 0.2 },
+    { src: "images/kz_for_home_5.png", depth: 0.36 },
+    { src: "images/kz_for_home_4.png", depth: 0.52 },
+    { src: "images/kz_for_home_3.png",  depth: 0.68 },
+    { src: "images/kz_for_home_2.png", depth: 0.84 },
+    { src: "images/kz_for_home.png",  depth: 1.0 }
+];
+
+const materials = [];
+const mouse = new THREE.Vector2(0.5, 0.5);
+const targetMouse = new THREE.Vector2(0.5, 0.5);
+const lerpFactor = 0.3;
+
+layers.forEach((layer, i) => {
+    const texture = new THREE.TextureLoader().load(layer.src);
+    texture.minFilter = THREE.LinearFilter;
+
+    const material = new THREE.ShaderMaterial({
+        transparent: true,
+        uniforms: {
+            uTexture: { value: texture },
+            uMouse: { value: mouse },
+            uStrength: { value: 0.25 },
+            uRadius: { value: 0.5 },
+            uDepth: { value: layer.depth },
+        },
+        vertexShader,
+        fragmentShader
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.set(1, 1, 1);
+
+    mesh.position.z = i * 0.01;
+    scene.add(mesh);
+
+    materials.push(material);
+});
+
+// mouse stuff
+window.addEventListener("mousemove", (e) => {
+    const mx = e.clientX / window.innerWidth;
+    const my = 1.0 - e.clientY / window.innerHeight;
+    targetMouse.x = (mx - 0.5) / 0.7 + 0.5;
+    targetMouse.y = (my - 0.5) / 0.5 + 0.5;
+});
+
+// render loop
+function animate() {
+    requestAnimationFrame(animate);
+    
+
+    mouse.x += (targetMouse.x - mouse.x) * lerpFactor;
+    mouse.y += (targetMouse.y - mouse.y) * lerpFactor;
+    
+    renderer.render(scene, camera);
+}
+animate();
+
+/* -------------------- RESIZE -------------------- */
+window.addEventListener("resize", () => {
+    const width = document.body.clientWidth || 800;
+    const height = document.body.clientHeight || 400;
+    renderer.setSize(width, height);
+});
+</script>
+
+</body>
+</html>

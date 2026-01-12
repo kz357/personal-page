@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Hi :D{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <iframe src="{{ url_for('static', filename='bulge_kz.html') }}" style="width: 100%; height: 560px; border: none;"></iframe>
+</div>
+
+<p>Hi!! I'm Kevin, a first-year student at Yale studying math and CS. I'm currently working as an undergraduate research assistant in the <a href="https://www.gersteinlab.org/">Gerstein Lab</a> at Yale.</p>
+{% endblock %}
