@@ -68,7 +68,7 @@
     <div id="status"></div>
     <div id="loadStatus"></div>
     <audio id="mrsandman" loop autoplay>
-        <source src="{{ url_for('static', filename='Mr. Sandman - The Chordettes.mp3') }}" type="audio/mpeg">
+        <source src="{{ url_for('static', filename='mrsandman.mp3') }}" type="audio/mpeg">
     </audio>
     <img id="crown" src="{{ url_for('static', filename='crown.jpeg') }}" style="display: none;">
 
@@ -152,7 +152,7 @@
         face.onResults((results) => {
             onFaceResults(results);
             if (!window.faceLoaded) {
-                document.getElementById('loadStatus').innerHTML += 'move hands for fun times<br>';
+                document.getElementById('loadStatus').innerHTML += 'move hands closer or further apart for fun times<br>';
                 window.faceLoaded = true;
             }
         });
