@@ -227,7 +227,7 @@
             }
             
             // hand line
-            if (handResults.multiHandLandmarks.length === 2) {
+            if (handResults && handResults.multiHandLandmarks && handResults.multiHandLandmarks.length === 2) {
                 const hand1 = handResults.multiHandLandmarks[0][9]; // Middle finger base
                 const hand2 = handResults.multiHandLandmarks[1][9];
                 
@@ -259,6 +259,9 @@
                 canvasCtx.font = '30px Arial';
                 canvasCtx.fillText(`${Math.round(distance)}px`, -((x1 + x2) / 2), (y1 + y2) / 2 - 20);
                 canvasCtx.restore();
+            }
+            else {
+                audio.playbackRate = 1;
             }
         
             
