@@ -23,5 +23,9 @@ def projects():
 def about():
     return render_template("about.html")
 
+@app.route("/fraudulent-conductor")
+def fraudulent_conductor():
+    return render_template("camera.html")
+
 if __name__ == "__main__":
     app.run(debug=True)

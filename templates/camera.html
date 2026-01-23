@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fraudulent conductor</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+        
+        #video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            background-color: #000;
+            transform: scaleX(-1);
+            z-index: 10;
+        }
+
+        #placeholder {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            background-color: #000;
+            z-index: 15;
+        }
+
+        #loadStatus {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 20px;
+            z-index: 25;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #output {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transform: scaleX(-1);
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <img id="placeholder" src="{{ url_for('static', filename='hand.png') }}" alt="Hand placeholder">
+    <img id="jksimmons" src="{{ url_for('static', filename='jksimmons.avif') }}" style="display: none;">
+    <video id="video" autoplay playsinline disablePictureInPicture></video>
+    <canvas id="output" width="1920" height="1080"></canvas>
+    <div id="status"></div>
+    <div id="loadStatus"></div>
+    <audio id="mrsandman" loop autoplay>
+        <source src="{{ url_for('static', filename='Mr. Sandman - The Chordettes.mp3') }}" type="audio/mpeg">
+    </audio>
+    <img id="crown" src="{{ url_for('static', filename='crown.jpeg') }}" style="display: none;">
+
+        <script>
+            const video = document.getElementById('video');
+            const status = document.getElementById('status');
+            const placeholder = document.getElementById('placeholder');
+            let stream = null;
+            
+            async function startCamera() {
+            try {
+                status.textContent = 'give me camera';
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                
+                video.addEventListener('playing', () => {
+                    placeholder.style.display = 'none';
+                }, { once: true });
+                
+                status.textContent = 'camera active';
+                
+            } catch (err) {
+                console.error('error accessing webcam', err);
+                status.textContent = 'error: ' + err.message;
+            }
+        }
+
+        startCamera();
+
+        const canvasElement = document.getElementById('output');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        const audio = document.getElementById('mrsandman');
+
+        audio.play().catch(() => {
+            document.body.addEventListener('click', () => {
+                audio.play();
+            }, { once: true });
+        });
+
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(onResults);
+
+        hands.onResults((results) => {
+            onResults(results);
+            if (!window.handLoaded) {
+                document.getElementById('loadStatus').innerHTML += 'click to start music<br>';
+                window.handLoaded = true;
+            }
+        });
+
+        const face = new FaceDetection({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`;
+        }});
+
+        face.setOptions({
+            model: 'short',
+            minDetectionConfidence: 0.5
+        });
+
+        face.onResults(onFaceResults);
+
+        face.onResults((results) => {
+            onFaceResults(results);
+            if (!window.faceLoaded) {
+                document.getElementById('loadStatus').innerHTML += 'move hands for fun times<br>';
+                window.faceLoaded = true;
+            }
+        });
+
+        let handResults = null;
+        let faceResults = null;
+
+        function onResults(results) {
+            handResults = results;
+            drawAll();
+        }
+
+        function onFaceResults(results) {
+            if (results.detections && results.detections.length > 1) {
+                results.detections = [results.detections[0]];
+            }
+            faceResults = results;
+            drawAll();
+        }
+
+        function drawAll() {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            //face 
+            // Draw faces first
+            if (faceResults && faceResults.detections) {
+
+                
+                console.log('face detections:', faceResults.detections.length);
+
+                const crown = document.getElementById('crown');
+                console.log('Crown:', crown);
+                
+                for (const detection of faceResults.detections) {
+                    console.log('full detection object:', detection);
+                    console.log('bounding box:', detection.boundingBox);
+                    const box = detection.boundingBox;
+                    const width = box.width * canvasElement.width;
+                    const height = box.height * canvasElement.height;
+                    const x = (box.xCenter * canvasElement.width) - (width / 2);
+                    const y = (box.yCenter * canvasElement.height) - (height / 2);
+                    
+                    console.log('Face box coords:', x, y, width, height);
+                    
+                    // Draw blue box
+                    canvasCtx.strokeStyle = '#0000FF';
+                    canvasCtx.lineWidth = 3;
+                    canvasCtx.strokeRect(x, y, width, height);
+
+                    canvasCtx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+                    canvasCtx.fillRect(x, y, width, height);
+                    
+                    // Draw crown above the face box
+                    const crownWidth = width * 1.2;
+                    const crownHeight = height * 0.6;
+                    const crownX = x - (crownWidth - width) / 2;
+                    const crownY = y - crownHeight;
+                    
+                    if (crown && crown.complete) {
+                        canvasCtx.drawImage(crown, crownX, crownY, crownWidth, crownHeight);
+                    }
+                }
+            }
+            
+            // hands
+            if (handResults && handResults.multiHandLandmarks) {
+                for (const landmarks of handResults.multiHandLandmarks) {
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
+                    drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+                }
+            }
+            
+            // hand line
+            if (handResults.multiHandLandmarks.length === 2) {
+                const hand1 = handResults.multiHandLandmarks[0][9]; // Middle finger base
+                const hand2 = handResults.multiHandLandmarks[1][9];
+                
+                const x1 = hand1.x * canvasElement.width;
+                const y1 = hand1.y * canvasElement.height;
+                const x2 = hand2.x * canvasElement.width;
+                const y2 = hand2.y * canvasElement.height;
+                
+                // dotted line
+                canvasCtx.beginPath();
+                canvasCtx.setLineDash([10, 10]);
+                canvasCtx.strokeStyle = '#00FF00';
+                canvasCtx.lineWidth = 3;
+                canvasCtx.moveTo(x1, y1);
+                canvasCtx.lineTo(x2, y2);
+                canvasCtx.stroke();
+                canvasCtx.setLineDash([]);
+                
+                const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+                const speed = 600 / distance;
+                audio.playbackRate = speed;
+                
+                // display distance
+                // Display distance
+                canvasCtx.save();
+                canvasCtx.scale(-1, 1);
+                canvasCtx.fillStyle = '#FFFF00';
+                canvasCtx.font = '30px Arial';
+                canvasCtx.fillText(`${Math.round(distance)}px`, -((x1 + x2) / 2), (y1 + y2) / 2 - 20);
+                canvasCtx.restore();
+            }
+        
+            
+            canvasCtx.restore();
+        }
+
+        const camera = new Camera(video, {
+            onFrame: async () => {
+                await hands.send({image: video});
+                await face.send({image: video});
+            },
+            width: 1920,
+            height: 1080
+        });
+
+        camera.start();
+        </script>
+</body>
+</html>
