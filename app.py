@@ -12,7 +12,7 @@ PROJECTS = [
 
     {
         "title": "Fraudulent conductor", 
-        "description": "A lot of my friends are really good at music but i was chopped at piano and even more chopped at violin. But with js and mediapipe i can now feel better about myself and pretend to be a conductor like I always dreamed of. Spotify is poopoo and their api is down but I'll add it when I can.",
+        "description": "A lot of my friends are really good at music but i was chopped at piano and even more chopped at violin. But with js and mediapipe i can now feel better about myself and pretend to be a conductor like I always dreamed of. Spotify api is down but I'll add it when I can.",
         "image": "images/jksimmons.avif",
         "url": "/fraudulent-conductor"
     },
